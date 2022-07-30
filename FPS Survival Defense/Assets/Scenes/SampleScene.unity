@@ -330,7 +330,7 @@ MonoBehaviour:
   walkSpeed: 3
   theCamera: {fileID: 963194227}
   lookSensitivity: 1
-  cmaeraRotationLimit: 0
+  cameraRotationLimit: 45
 --- !u!54 &935617637
 Rigidbody:
   m_ObjectHideFlags: 0
