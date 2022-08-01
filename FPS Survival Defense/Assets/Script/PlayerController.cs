@@ -9,6 +9,10 @@ public class PlayerController : MonoBehaviour
     private float walkSpeed;
     [SerializeField]
     private float runSpeed;
+    [SerializeField]
+    private float crouchSpeed;
+
+
     private float applySpeed;
 
     [SerializeField]
@@ -17,7 +21,16 @@ public class PlayerController : MonoBehaviour
     //상태변수
     private bool isRun = false;
     private bool isGround = true; //true만 점프할 수 있게. 공중에서 또 다시 점프 못하게
+    private bool isCrouch = false;
 
+    //앉았을 때 얼마나 앉을지 결정하는 변수
+    [SerializeField]
+    private float crouchPosY; //숙이는건 Y가
+    private float originPosY; //숙였다가 원래로 돌아가야하는데 원래의 첫 높이
+    private float applyCrouchPosY; //crouchPosY와 originPosY를 넣어줄 것이다.
+
+
+    //땅 착지 여부
     private CapsuleCollider capsuleCollider;
 
     //민감도
@@ -42,17 +55,66 @@ public class PlayerController : MonoBehaviour
         capsuleCollider = GetComponent<CapsuleCollider>();
         myRigid = GetComponent<Rigidbody>();
         applySpeed = walkSpeed; //달리기 전엔 무조건 걷는 상태니까
+
+        originPosY = theCamera.transform.localPosition.y; //상대적인거 기준으로 해야하기 때문에
+        applyCrouchPosY = originPosY;
     }
 
 
     void Update()
     {
+        IsGround();
         TryJump();
         TryRun();
+        TryCrouch();
         Move();
         CameraRotation();
         CharacterRotation();
     }
+
+    private void TryCrouch()
+    {
+        if(Input.GetKeyDown(KeyCode.LeftControl))
+        {
+            Crouch();
+        }
+    }
+
+    private void Crouch()
+    {
+        isCrouch = !isCrouch;
+
+        if(isCrouch)
+        {
+            //앉았을때
+            applySpeed = crouchSpeed;
+            applyCrouchPosY = crouchPosY; 
+        }
+        else
+        {
+            applySpeed = walkSpeed;
+            applyCrouchPosY = originPosY;
+        }
+
+        theCamera.transform.localPosition = new Vector3(theCamera.transform.localPosition.x,applyCrouchPosY,theCamera.transform.localPosition.z);
+    }
+
+    IEnumerator CrouchCoroutine()
+    {
+        float _posY = theCamera.transform.localPosition.y;
+
+        while(_posY != applyCrouchPosY)
+        {
+            _posY = Mathf.Lerp();
+        }
+        yield return new WaitForSeconds(1f);
+    }
+
+    private void IsGround()
+    {
+        isGround = Physics.Raycast(transform.position, Vector3.down, capsuleCollider.bounds.extents.y + 0.1f);
+    }
+
 
     private void TryJump()
     {
