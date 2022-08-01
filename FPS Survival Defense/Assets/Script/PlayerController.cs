@@ -4,32 +4,91 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    //스피드 조정 변수
     [SerializeField]
     private float walkSpeed;
+    [SerializeField]
+    private float runSpeed;
+    private float applySpeed;
 
     [SerializeField]
-    private Camera theCamera;
-    private Rigidbody myRigid; //실제 육체적인 몸
+    private float jumpForce;
 
+    //상태변수
+    private bool isRun = false;
+    private bool isGround = true; //true만 점프할 수 있게. 공중에서 또 다시 점프 못하게
+
+    private CapsuleCollider capsuleCollider;
+
+    //민감도
     [SerializeField]
-    private float lookSensitivity; //민감도
-
+    private float lookSensitivity; 
+    
+    //카메라한계
     [SerializeField]
     private float cameraRotationLimit;
     private float currentCameraRotationX = 0; //정면을 바라보게
 
+    //필요한 컴포넌트
+    [SerializeField]
+    private Camera theCamera; //FindObjectOfType : Hierarchy에 있는 객체 찾기로 할 수도 있다. 를 START에 넣어주는 방법도 있다
+
+
+    private Rigidbody myRigid; //실제 육체적인 몸
+
+
     void Start()
     {
+        capsuleCollider = GetComponent<CapsuleCollider>();
         myRigid = GetComponent<Rigidbody>();
-        //FindObjectOfType : Hierarchy에 있는 객체 찾기로 할 수도 있다.
+        applySpeed = walkSpeed; //달리기 전엔 무조건 걷는 상태니까
     }
 
 
     void Update()
     {
+        TryJump();
+        TryRun();
         Move();
         CameraRotation();
         CharacterRotation();
+    }
+
+    private void TryJump()
+    {
+        if(Input.GetKeyDown(KeyCode.Space) && isGround)
+        {
+            Jump();
+        }
+    }
+
+    private void Jump()
+    {
+        myRigid.velocity = transform.up * jumpForce;
+    }
+
+    private void TryRun() //무주건 Move 위에 있어야함. 달리는지 안달리는지 확인해야하기 때문
+    {
+        if(Input.GetKey(KeyCode.LeftShift))
+        {
+            Running();
+        }
+        if(Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            RunningCancel(); //떼는 순간
+        }
+    }
+
+    private void Running()
+    {
+        isRun = true;
+        applySpeed = runSpeed;
+    }
+
+    private void RunningCancel()
+    {
+        isRun = false;
+        applySpeed = walkSpeed;
     }
 
     private void Move()
@@ -40,12 +99,13 @@ public class PlayerController : MonoBehaviour
         Vector3 _moveHorizontal = transform.right * _moveDirX;
         Vector3 _moveVertical = transform.forward * _moveDirZ;
 
-        Vector3 _velocity = (_moveHorizontal + _moveVertical).normalized * walkSpeed;
+        Vector3 _velocity = (_moveHorizontal + _moveVertical).normalized * applySpeed;
 
         myRigid.MovePosition(transform.position + _velocity * Time.deltaTime);
 
     }
 
+    
     private void CameraRotation()
     {
         //상하 카메라 회전

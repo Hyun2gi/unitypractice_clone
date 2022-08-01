@@ -328,9 +328,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   walkSpeed: 3
-  theCamera: {fileID: 963194227}
+  runSpeed: 10
   lookSensitivity: 1
   cameraRotationLimit: 45
+  theCamera: {fileID: 963194227}
 --- !u!54 &935617637
 Rigidbody:
   m_ObjectHideFlags: 0
